@@ -7,12 +7,11 @@ Created on Mar 27, 2018
 from enum import Enum
 import pprint
 import subprocess
-
+import os
 import matplotlib
 matplotlib.use("Agg")
 from matplotlib.pyplot import tight_layout
 from pint.registry import UnitRegistry
-
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -166,7 +165,23 @@ def save_figure(outpath, dpi=600, tight_layout=True):
     plt.close()
 
 
-if __name__ == '__main__':
+def geopandas_colorbar_same_height(f, ax, vmin, vmax, cmap):
+    from matplotlib.colors import Normalize
+    from matplotlib import cm
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+    # Create colorbar
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.2)
+
+    norm = Normalize(vmin=vmin, vmax=vmax)
+    n_cmap = cm.ScalarMappable(norm=norm, cmap=cmap)
+    n_cmap.set_array([])
+
+    f.colorbar(n_cmap, cax=cax)
+
+
+def example_matplotlib():
     f, ax = init_figure(nrows=1,
                         ncols=1,
                         columnes=Columnes.TWO)
@@ -180,3 +195,46 @@ if __name__ == '__main__':
     ax.set_ylabel(r"Y [$\si{\celsius}$]")
 
     save_figure(outpath=r"/tmp/test.png")
+
+
+def example_geopandas():
+
+    import geopandas as gpd
+
+    cmap = matplotlib.cm.get_cmap('rocket')
+
+    fpath = os.path.join(
+        'data',
+        'coutwildrnp.shp')
+
+    df = gpd.read_file(fpath)
+
+    f, ax = init_figure(nrows=1,
+                        ncols=1,
+                        columnes=Columnes.TWO,
+                        journal=Journal.SPRINGER)
+
+    ax.set_aspect('equal')
+    ax.set_axis_off()
+
+    vmin = 0.0
+    vmax = 0.05
+    im = df.plot(column='AREA',
+            ax=ax,
+            linewidth=0.1,
+            edgecolor='face',
+            vmin=vmin,
+            vmax=vmax,
+            cmap=cmap,
+#             legend=True
+            )
+
+    geopandas_colorbar_same_height(f, ax, vmin, vmax, cmap)
+
+    plt.tight_layout()
+    save_figure(outpath=r"/tmp/test_geopandas.png")
+
+
+if __name__ == '__main__':
+#     example_matplotlib()
+    example_geopandas()
