@@ -10,7 +10,7 @@ import subprocess
 import os
 import matplotlib
 matplotlib.use("Agg")
-from matplotlib.pyplot import tight_layout
+from mpl_toolkits.mplot3d import Axes3D
 from pint.registry import UnitRegistry
 import matplotlib.pyplot as plt
 import numpy as np
@@ -91,11 +91,14 @@ def init_figure(nrows=1,
                 sharex=False,
                 sharey=False,
                 squeeze=True,
+                subplot_kw=None,
+                gridspec_kw=None,
                 fig_height_mm=None,
                 height_scale=1.0,
                 columnes=Columnes.TWO,
                 journal=Journal.SPRINGER,
-                disabled_spines=['top', 'right']):
+                disabled_spines=['top', 'right'],
+                **fig_kw):
 
     sns.set_style("whitegrid")
     sns.set_context("paper")
@@ -119,7 +122,8 @@ def init_figure(nrows=1,
                                 r'\sansmath',
                                 r'\sisetup{detect-all}',
                                 # https://tex.stackexchange.com/questions/207060/siunitx-celsius-font
-                                r'\sisetup{math-celsius = {}^{\circ}\kern-\scriptspace C}'],
+                                r'\sisetup{math-celsius = {}^{\circ}\kern-\scriptspace C}',
+                                r'\AtBeginDocument{\DeclareSIUnit{\watthour}{Wh}}'],
         'text.latex.unicode': True,
         'font.family': 'sans-serif',
         'font.sans-serif': journal_config[journal][FONT],
@@ -134,10 +138,13 @@ def init_figure(nrows=1,
                           sharex=sharex,
                           sharey=sharey,
                           squeeze=squeeze,
+                          subplot_kw=subplot_kw,
+                          gridspec_kw=gridspec_kw,
                           figsize=figsize(fig_height_mm=fig_height_mm,
                                           columnes=columnes,
                                           height_scale=height_scale,
-                                          journal=journal))
+                                          journal=journal),
+                          **fig_kw)
 
     for ax in f.axes:
         for spine in disabled_spines:
@@ -235,6 +242,26 @@ def example_geopandas():
     save_figure(outpath=r"/tmp/test_geopandas.png")
 
 
+def example_3d():
+    f, ax = init_figure(nrows=1,
+                        ncols=1,
+                        columnes=Columnes.TWO,
+                        subplot_kw=dict(projection='3d'))
+
+    theta = np.linspace(-4 * np.pi, 4 * np.pi, 100)
+    z = np.linspace(-2, 2, 100)
+    r = z**2 + 1
+    x = r * np.sin(theta)
+    y = r * np.cos(theta)
+    ax.plot(x, y, z, label='parametric curve')
+    ax.legend()
+
+    save_figure(outpath=r"/tmp/test3d.png")
+    subplot_kw=dict(projection='3d')
+
+
 if __name__ == '__main__':
 #     example_matplotlib()
-    example_geopandas()
+#     example_geopandas()
+    example_3d()
+
