@@ -15,6 +15,7 @@ from pint.registry import UnitRegistry
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import pickle as pl
 
 
 ureg = UnitRegistry()
@@ -156,19 +157,28 @@ def init_figure(nrows=1,
 def save_figure(outpath, dpi=600, tight_layout=True):
     if tight_layout:
         plt.tight_layout()
+
+    # Pickle dump figure for later reuse
+    pl.dump(plt.gcf(), open(outpath.replace('.png', '.pickle'), 'wb'))
+
+    # Save as image with white background
     plt.savefig(outpath,
                 dpi=dpi,
                 transparent=False)
 
+    # Save as image with transparent background
     plt.savefig(outpath.replace('.png', '-transparent.png'),
                 dpi=dpi,
                 transparent=True)
 
+    # Save as pdf
     plt.savefig(outpath.replace('.png', '.pdf'))
 
+    # Crop pdf
     subprocess.run(["pdfcrop",
                     outpath.replace('.png', '.pdf'),
                     outpath.replace('.png', '-crop.pdf')])
+
     plt.close()
 
 
